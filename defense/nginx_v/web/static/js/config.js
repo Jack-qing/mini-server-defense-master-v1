@@ -1,0 +1,4 @@
+window.g = {
+  AXIOS_TIMEOUT: 10000,
+  SERVICE_CONTEXT_PATH: 'http://192.168.3.66:5000/api/v1_0'
+}
