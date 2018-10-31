@@ -11,8 +11,6 @@ from flask import Flask, render_template
 from logging.handlers import RotatingFileHandler
 from config import config_dict
 from defense.utils.re_converter import ReConverter
-# from flask_socketio import SocketIO
-from flask_cache import Cache
 
 # 构建redis连接对象
 redis_store = None
