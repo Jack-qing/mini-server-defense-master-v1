@@ -29,9 +29,7 @@ logging.getLogger().addHandler(file_log_handler)
 # 为flask补充csrf防护机制
 # csrf = CSRFProtect(app)
 
-# socketio初始化
-# socketio = SocketIO()
-cache = Cache()
+
 
 def create_app(config_name):
     u'''工厂模式'''
@@ -42,8 +40,7 @@ def create_app(config_name):
     # 设置flask 信息
     app.config.from_object(conf)
 
-    # socketio.init_app(app)
-    cache.init_app(app)
+
 
 
     # 初始化redis_store
