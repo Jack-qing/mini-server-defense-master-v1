@@ -32,7 +32,6 @@ def defense_scanner_linux():
         name = name + ':latest'
     file_name = name.replace('/', '@')
     docker_connection = docker.Client(base_url='unix:///var/run/docker.sock')
-    print(name)
     docker_search = docker_connection.images(name)
     if not docker_search:
         return jsonify({'cod': RET.NODATA, 'imageName': 'docker not image'})
@@ -129,40 +128,43 @@ def search_name():
 
 def download_images(docker_connection, name_pull):
     detail_dict = {}
-    for line in docker_connection.pull(name_pull, decode=True, stream=True):
-        if name_pull in progress_dict.keys():
-            progress_dict.pop(name_pull)
-            with open('./detail/{}'.format(name_pull), 'w') as file:
-                file.write(str(0))
-            return
-        pull_status = line.get("status")
-        pull_id = line.get("id")
-        pull_detail = line.get("progressDetail")
-        if pull_status == "Downloading":
-            detail_dict[pull_id]['current'] = detail_dict[pull_id]['total'] * (
-                    pull_detail['current'] / pull_detail['total'])
-            detail = 0
-            for d in detail_dict.values():
-                detail += d['current'] / d['total']
-            detail = "%.3f%%" % (detail / len(detail_dict) * 100)
+    try:
+        for line in docker_connection.pull(name_pull, decode=True, stream=True):
+            if name_pull in progress_dict.keys():
+                progress_dict.pop(name_pull)
+                with open('./detail/{}'.format(name_pull), 'w') as file:
+                    file.write(str(0))
+                return
+            pull_status = line.get("status")
+            pull_id = line.get("id")
+            pull_detail = line.get("progressDetail")
+            if pull_status == "Downloading":
+                detail_dict[pull_id]['current'] = detail_dict[pull_id]['total'] * (
+                        pull_detail['current'] / pull_detail['total'])
+                detail = 0
+                for d in detail_dict.values():
+                    detail += d['current'] / d['total']
+                detail = "%.3f%%" % (detail / len(detail_dict) * 100)
 
-            with open('./detail/{}'.format(name_pull), 'w') as file:
-                file.write(str(detail))
+                with open('./detail/{}'.format(name_pull), 'w') as file:
+                    file.write(str(detail))
 
-        if pull_status == "Download complete":
-            detail_dict[pull_id]['current'] = detail_dict[pull_id]['total']
-            detail = 0
-            for d in detail_dict.values():
-                detail += d['current'] / d['total']
-            detail = "%.3f%%" % (detail / len(detail_dict) * 100)
-            with open('./detail/{}'.format(name_pull), 'w') as file:
-                file.write(str(detail))
+            if pull_status == "Download complete":
+                detail_dict[pull_id]['current'] = detail_dict[pull_id]['total']
+                detail = 0
+                for d in detail_dict.values():
+                    detail += d['current'] / d['total']
+                detail = "%.3f%%" % (detail / len(detail_dict) * 100)
+                with open('./detail/{}'.format(name_pull), 'w') as file:
+                    file.write(str(detail))
 
-        if pull_status == "Pulling fs layer":
-            detail_dict[pull_id] = {'current': 0, 'total': 100}
+            if pull_status == "Pulling fs layer":
+                detail_dict[pull_id] = {'current': 0, 'total': 100}
 
-    with open('./detail/{}'.format(name_pull), 'w') as file:
-        file.write('docker pull complete')
+        with open('./detail/{}'.format(name_pull), 'w') as file:
+            file.write('docker pull complete')
+    except Exception as e:
+        return jsonify({'cod': RET.DBERR, "dockerPull": "error"})
 
 
 # 192.168.3.53:5000/image_pull?name=java
@@ -207,7 +209,6 @@ def docker_images_stop():
     progress_dict[name_pull] = 'stop'
 
     return jsonify({'cod': RET.OK, "image": name_pull, 'stop': 'ok'})
-
 
 
 # 192.168.3.53:5000/storage?page=1
@@ -267,27 +268,3 @@ def page_vulnerabicity(username):
                 'data': page_list
             }
             return jsonify(data)
-
-
-@api.route('pause/')
-@cross_origin()
-def pause_container():
-    pauses = request.args.get('name')
-    docker_connection = docker.Client(base_url='unix:///var/run/docker.sock')
-    docker_pause = docker_connection.pause(pauses)
-    print("+++====")
-    print(docker_pause)
-    # return jsonify({'cod': RET.NODATA, "dockerPause": "NO DATA"})
-    return jsonify({'cod': RET.OK, "dockerPause": "OK"})
-
-
-@api.route('unpause/')
-@cross_origin()
-def Unpause_container():
-    unpauses = request.args.get('name')
-    docker_connection = docker.Client(base_url='unix:///var/run/docker.sock')
-    docker_unpause = docker_connection.pause(unpauses)
-    print("------")
-    print(docker_unpause)
-    # return jsonify({'cod': RET.NODATA, "dockerUnPause": "NO DATA"})
-    return jsonify({'cod': RET.OK, "dockerUnPause": "OK"})
