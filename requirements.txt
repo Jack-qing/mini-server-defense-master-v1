@@ -7,7 +7,7 @@ click==6.7
 docker-py==1.10.6
 docker-pycreds==0.3.0
 Flask==1.0.2
-Flask-Cors==3.0.6
+Flask-Cors==3.0.9
 Flask-Migrate==2.2.1
 Flask-Script==2.0.6
 Flask-Session==0.3.1
